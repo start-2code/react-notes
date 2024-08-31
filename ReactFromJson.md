@@ -141,3 +141,127 @@ The `ReactFromJSON` component (hypothetical in this context but typical for such
 - **Interactivity**: Components like `Draggable` and `Resizable` add dynamic interactivity, enabling rich user interactions.
   
 This approach is ideal for applications that require flexible, data-driven UIs such as form builders, interactive quizzes, or any system where UIs are generated from a backend or user-defined data.
+
+
+This code snippet defines a highly interactive component using the `react-draggable` and `re-resizable` libraries, allowing users to drag, resize, and interact with elements dynamically based on their role. It is typically used in applications where users can manipulate UI elements, such as in a form builder, quiz creator, or any interactive content management system.
+
+### Breakdown of the Code
+
+1. **`Draggable` Component**:
+   - The outer component is a `Draggable` from the `react-draggable` library. It allows the user to move (drag) the element around within its parent container.
+
+   ```javascript
+   <Draggable
+     key={propKey}
+     onStop={onStop} 
+     bounds="parent"
+     disabled={role === 'student'}
+     cancel="[class^=Resizable-]"
+     position={{ x: 0, y: 0 }}
+     scale={settings.zoom}
+     {...props}
+   >
+   ```
+
+   - **Props**:
+     - **`key={propKey}`**: A unique key to identify this component instance, necessary for React’s reconciliation process.
+     - **`onStop={onStop}`**: Callback function that is executed when the dragging stops, allowing the position to be updated and saved.
+     - **`bounds="parent"`**: Restricts the dragging area to within the parent element.
+     - **`disabled={role === 'student'}`**: Disables dragging if the user role is `'student'`.
+     - **`cancel="[class^=Resizable-]"`**: Prevents dragging when interacting with elements whose class names start with `Resizable-` (e.g., resize handles).
+     - **`position={{ x: 0, y: 0 }}`**: Sets the initial position. (This may be dynamically set elsewhere in the real code.)
+     - **`scale={settings.zoom}`**: Scales the draggable movement to fit the zoom level defined in `settings.zoom`.
+     - **`{...props}`**: Spread operator to pass any additional properties.
+
+2. **`<div>` Inside `Draggable`**:
+   - This `div` acts as the container for the draggable content. It is also used to detect mouse events like hover (`onMouseOver`) and double-click (`onDoubleClick`).
+
+   ```javascript
+   <div ref={ref} style={style as any} onMouseOver={onMouseOver} onDoubleClick={openModal}>
+   ```
+
+   - **Props**:
+     - **`ref={ref}`**: A `ref` is attached to the `div` to access the DOM element directly, which is useful for measurement and manipulation.
+     - **`style={style as any}`**: Dynamically calculated style for positioning the `div` using absolute positioning based on the computed `style`.
+     - **`onMouseOver={onMouseOver}`**: Sets the currently hovered component index, likely used for visual or interactive feedback.
+     - **`onDoubleClick={openModal}`**: Opens a modal when the `div` is double-clicked. Only available if the `role` is `'teacher'`.
+
+3. **Role-Based Conditional Rendering**:
+   - Depending on the user’s role (`teacher` or `student`), the inner content is rendered differently.
+
+   ```javascript
+   {role === 'teacher' ? (
+     <Resizable>
+       {/* Teacher view content */}
+     </Resizable>
+   ) : (
+     <Box>
+       {/* Student view content */}
+     </Box>
+   )}
+   ```
+
+4. **`Resizable` Component (for Teachers)**:
+   - When the `role` is `'teacher'`, the `Resizable` component from the `re-resizable` library is used to allow resizing of the element.
+
+   ```javascript
+   <Resizable
+     className="Resizable"
+     handleClasses={{
+       top: 'Resizable-top',
+       right: 'Resizable-right',
+       bottom: 'Resizable-bottom',
+       left: 'Resizable-left',
+       topRight: 'Resizable-topRight',
+       bottomRight: 'Resizable-bottomRight',
+       bottomLeft: 'Resizable-bottomLeft',
+       topLeft: 'Resizable-topLeft',
+     }}
+     size={{ width: 'auto', height: 'auto' }}
+     onResize={(e, direction, ref, delta) => { ... }}
+     onResizeStop={(e, direction, ref, delta) => { ... }}
+   >
+   ```
+
+   - **Props**:
+     - **`className="Resizable"`**: Sets a CSS class for styling.
+     - **`handleClasses`**: Defines custom classes for resize handles, allowing custom styling for each handle's position (top, right, bottom, left, corners).
+     - **`size={{ width: 'auto', height: 'auto' }}`**: Sets the initial size of the resizable element to be automatic, adjusting based on content.
+     - **`onResize`**: Callback when resizing occurs. Dynamically calculates the new dimensions and calls `setZoom`.
+     - **`onResizeStop`**: Callback when resizing stops. Updates the width and height state and calls `setZoom` to adjust the zoom level based on the new size.
+
+   - **Resizable Child Content**:
+     - **Visual Feedback**: Shows a green border around the selected component, otherwise transparent. This is determined by comparing `selectedComponentIndex` with `propIndex`.
+
+5. **`Box` Component (for Students)**:
+   - When the `role` is `'student'`, a simple `Box` component from Material-UI is used to display content without resizable functionality.
+
+   ```javascript
+   <Box className="Resizable">
+     <div
+       style={{
+         border: !showStudentsScore
+           ? '2px dashed transparent'
+           : isCorrect
+           ? '2px dashed lightgreen'
+           : '2px dashed red',
+       }}
+     >
+       {children}
+     </div>
+   </Box>
+   ```
+
+   - **Styling**:
+     - If `showStudentsScore` is `false`, the border is transparent.
+     - If `showStudentsScore` is `true`, the border color changes based on the correctness of the answer (`lightgreen` for correct, `red` for incorrect).
+   - **Content**: Renders the `children` prop inside the `Box`.
+
+### Summary
+
+- **Dynamic Behavior Based on Role**: The content and interactivity change based on the user's role (`teacher` vs. `student`). Teachers have full control (dragging, resizing), while students have a more limited interaction.
+- **Drag-and-Drop with `Draggable`**: Makes elements draggable with boundaries set to the parent container and custom constraints.
+- **Resizing with `Resizable`**: Allows teachers to resize components dynamically, with custom callbacks to handle resizing events.
+- **Styling and Visual Feedback**: Provides clear visual feedback based on the state, such as selected component indication and correctness of answers.
+
+This approach is useful for building interactive, dynamic UIs where different roles have different levels of access and control, common in applications like educational tools, content editors, or interactive design systems.
