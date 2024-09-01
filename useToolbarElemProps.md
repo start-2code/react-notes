@@ -55,3 +55,68 @@ The `returnValue` object is created using `useMemo` to provide the context value
 ### Conclusion
 
 Overall, this code provides a powerful and flexible way to manage state for a complex toolbar component in a React application. It makes use of React's context, hooks, and utility functions from `lodash` to efficiently manage and manipulate state. The methods provided allow for fine-grained control over the toolbar's elements, making it easy to build interactive and dynamic user interfaces.
+
+In the context of the `ToolbarElemPropsProvider` from the previous explanation, the `forEachComponent` function is a utility function that allows you to iterate over all components in a structured way. Here's a detailed breakdown of what it does and how it's used:
+
+### What is `forEachComponent`?
+
+`forEachComponent` is a helper function that iterates over a nested array of `DraggableGroupElement` components. In this code, a `DraggableGroupElement` represents a draggable element in the toolbar component, which could belong to a "slide" or a group of components within that slide. 
+
+### Function Definition
+
+The `forEachComponent` function takes two parameters:
+
+1. **`components`**: This parameter is a two-dimensional array of `DraggableGroupElement` (`DraggableGroupElement[][]`). It represents the entire set of draggable elements, where each inner array (`componentPage`) represents a page or slide containing multiple draggable components.
+
+2. **`callback`**: This is a callback function that is executed for every component found within the `components` array. The callback function receives three arguments:
+   - `component`: The current `DraggableGroupElement` being iterated over.
+   - `selectedSlideIndex`: The index of the current slide or page within the `components` array.
+   - `selectedComponentIndex`: The index of the current component within the `componentPage`.
+
+### How Does `forEachComponent` Work?
+
+The function uses nested `forEach` loops to iterate over each "slide" (`componentPage`) and each "component" within that slide:
+
+1. The outer loop iterates over the `components` array, where each `componentPage` represents a slide, and `selectedSlideIndex` is its index.
+
+2. The inner loop iterates over each `component` within the current `componentPage`, and `selectedComponentIndex` is the index of that component within the page.
+
+3. For each `component`, the provided `callback` function is called with the current `component`, `selectedSlideIndex`, and `selectedComponentIndex`.
+
+### Usage in `ToolbarElemPropsProvider`
+
+The `forEachComponent` function is utilized several times in the `ToolbarElemPropsProvider` to perform operations on all components within the `value` state. Here are some examples of its usage:
+
+1. **`uncheckAll()` Method**:
+   - **Purpose**: To uncheck all draggable components in the `value` state.
+   - **How `forEachComponent` is Used**: It iterates through every component using `forEachComponent` and sets the `checked` property of each element to `false`.
+   ```typescript
+   forEachComponent(prevValue, (component, selectedSlideIndex, selectedComponentIndex) => {
+     // Logic to uncheck components
+   });
+   ```
+   - The function iterates through all slides and their components and sets the `checked` state of all the components to `false`.
+
+2. **`setScore(score)` Method**:
+   - **Purpose**: To set the score for all draggable components.
+   - **How `forEachComponent` is Used**: It iterates through every component using `forEachComponent` and sets the `score` property for each component to the provided `score` value.
+   ```typescript
+   forEachComponent(prevValue, (component, selectedSlideIndex, selectedComponentIndex) => {
+     set(prevValue, [selectedSlideIndex, selectedComponentIndex, 'props', 'score'], score);
+   });
+   ```
+   - This function similarly iterates through all components and updates the score property of each component.
+
+3. **`currentScore` Calculation**:
+   - **Purpose**: To calculate the current score based on user input.
+   - **How `forEachComponent` is Used**: It iterates through every component using `forEachComponent` to compute the current score by comparing the user's answers against the correct answers for each component.
+   ```typescript
+   forEachComponent(value, (component, selectedSlideIndex, selectedComponentIndex) => {
+     // Logic to calculate score based on answers
+   });
+   ```
+   - This process involves checking user responses against correct answers and summing up scores for correct responses.
+
+### Conclusion
+
+The `forEachComponent` function abstracts away the complexity of looping through a nested structure (a two-dimensional array of components). This makes the code more readable and reusable by centralizing the logic for iterating through all draggable components. It helps simplify and streamline various state manipulation operations inside the `ToolbarElemPropsProvider` component by providing a clean and consistent way to process all components in the toolbar.
